@@ -30,7 +30,7 @@
   </head>
   <body>
     <div id="ui">
-      Score: <span id="score">0</span> <button id="restart">Restart</button>
+      Score: <span id="score">0</span> <button id="restart">Restart</button> High Score: <span id="highscore">0</span>
     </div>
     <canvas id="game" width="480" height="320"></canvas>
     <script>
@@ -43,6 +43,8 @@
    const PADDLE_H = 12;
    
    let score = 0;
+   let setscore = 10;
+   let highscore = localStorage.getItem('highscore') ? parseInt(localStorage.getItem('highscore')) : 0;
    let running = false;
 
    // Ball & paddle
@@ -57,6 +59,7 @@
    const ctx = canvas.getContext('2d');
    // 3. A score element, so we can update the score
    const scoreEl = document.getElementById('score');
+   const highscoreEl = document.getElementById('highscore');
    // 4. A restart button, so we can apply click on it
    const restartBtn = document.getElementById('restart');
    
@@ -82,6 +85,9 @@
             ctx.fillText('Game Over!', CANVAS_W / 2, CANVAS_H / 2);
             ctx.font = '24px Arial';
             ctx.fillText('Click Restart to play again' , CANVAS_W / 2, CANVAS_H/2 + 40);
+            if (score >= highscore && score !=0){
+                ctx.fillText('New High Score: ' + highscore, CANVAS_W / 2, CANVAS_H/2 + 80);
+            }
 
         }else{
             // Draw the ball
@@ -98,15 +104,20 @@
             if (event.key === "ArrowLeft") {
               paddle.dx = -paddle.speed;
             }
-            if (event.key === "ArrowRight") {
+            else if (event.key === "ArrowRight") {
               paddle.dx = paddle.speed;
+            }
+            else if (event.key === "r" || event.key === "R") {
+                init();
             }
           })
         );
 
         if (
           document.addEventListener("keyup", () => {
-            paddle.dx = 0;
+            if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+                paddle.dx = 0;
+        }
           })
         );
 
@@ -159,6 +170,19 @@
    // 5. A function to update the score - updateUI() { ..... }
    function updateUI() {
       scoreEl.textContent = score;
+      highscoreEl.textContent = highscore;
+   }
+   function checkLevel(){
+        if (score >= 10){
+            ball.spead = BALL_SPEED + 1;
+            setscore += 10;
+        }
+   }    
+   function updateScore(){
+        if (score == highscore){
+            highscore++;
+            localStorage.setItem('highscore', highscore);
+        }
    }
    
    // === And the loop, to keep the game running
@@ -176,6 +200,8 @@
         movePaddle();
         moveBall();
         checkCollision();
+        updateScore();
+        checkLevel();
       }
       draw();
       requestAnimationFrame(loop);
